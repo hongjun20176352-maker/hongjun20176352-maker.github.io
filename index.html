@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hongjun Chang | Chung-Ang University</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Hongjun Chang (장홍준) - Ph.D. Candidate at Chung-Ang University, School of Energy Systems Engineering. Research on lithium-ion batteries, solid-state batteries, electrolyte engineering, and data-driven battery design.">
+    <meta name="keywords" content="Hongjun Chang, 장홍준, Chung-Ang University, 중앙대학교, MEMLab, battery, lithium-ion, solid-state battery, electrolyte engineering, energy storage">
+    <meta name="author" content="Hongjun Chang">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://hongjun20176352-maker.github.io/">
+
+    <!-- Open Graph (for sharing on social media) -->
+    <meta property="og:title" content="Hongjun Chang | Chung-Ang University">
+    <meta property="og:description" content="Ph.D. Candidate at Chung-Ang University. Research on lithium-ion batteries, electrolyte engineering, and data-driven battery design.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hongjun20176352-maker.github.io/">
+
+    <!-- Google Scholar -->
+    <meta name="citation_author" content="Hongjun Chang">
+    <meta name="citation_author_institution" content="Chung-Ang University">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="#" class="nav-logo" id="nav-logo"></a>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-menu">
+            <li><a href="#about">About</a></li>
+            <li><a href="#research">Research</a></li>
+            <li><a href="#publications">Publications</a></li>
+            <li><a href="#education">Education</a></li>
+        </ul>
+    </div>
+</nav>
+
+<header class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1 id="hero-name"></h1>
+            <p class="hero-subtitle" id="hero-name-ko"></p>
+            <p class="hero-affiliation" id="hero-affiliation"></p>
+            <p class="hero-lab" id="hero-lab"></p>
+            <div class="hero-links" id="hero-links"></div>
+        </div>
+        <div class="hero-photo" id="hero-photo"></div>
+    </div>
+</header>
+
+<section id="about" class="section">
+    <div class="container">
+        <h2 class="section-title">About Me</h2>
+        <div class="about-content" id="about-content"></div>
+    </div>
+</section>
+
+<section id="research" class="section section-alt">
+    <div class="container">
+        <h2 class="section-title">Research Interests</h2>
+        <div class="research-grid" id="research-grid"></div>
+    </div>
+</section>
+
+<section id="publications" class="section">
+    <div class="container">
+        <h2 class="section-title">Publications</h2>
+        <p class="section-desc">
+            For a complete list, visit my
+            <a href="https://scholar.google.com/citations?user=iGA6UWkAAAAJ&hl=en" target="_blank">Google Scholar</a>
+            or
+            <a href="https://sites.google.com/view/memlab/publications" target="_blank">MEMLab publications</a>.
+        </p>
+        <div id="publications-content"></div>
+        <p class="pub-note-bottom">
+            * Corresponding author &nbsp;&nbsp; † Equal contribution
+        </p>
+    </div>
+</section>
+
+<section id="education" class="section section-alt">
+    <div class="container">
+        <h2 class="section-title">Education</h2>
+        <div class="timeline" id="education-content"></div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container" id="footer-content"></div>
+</footer>
+
+<script src="data.js"></script>
+<script>
+(function() {
+    // Load data from localStorage (admin edits) or fall back to data.js
+    let d = siteData;
+    try {
+        const saved = localStorage.getItem('siteData');
+        if (saved) d = JSON.parse(saved);
+    } catch(e) {}
+
+    const p = d.profile;
+
+    // Nav & Hero
+    document.getElementById('nav-logo').textContent = p.name;
+    document.getElementById('hero-name').textContent = p.name;
+    document.getElementById('hero-name-ko').textContent = p.nameKo;
+    document.getElementById('hero-affiliation').innerHTML =
+        `${p.title}<br>${p.department}<br>${p.university}`;
+    document.getElementById('hero-lab').innerHTML =
+        `<a href="${p.labUrl}" target="_blank">${p.labName}</a>`;
+
+    // Links
+    const linksEl = document.getElementById('hero-links');
+    p.links.forEach(l => {
+        const a = document.createElement('a');
+        a.href = l.url;
+        if (!l.url.startsWith('mailto:')) a.target = '_blank';
+        a.innerHTML = `<i class="${l.icon}"></i> ${l.label}`;
+        linksEl.appendChild(a);
+    });
+
+    // Photo
+    const photoEl = document.getElementById('hero-photo');
+    if (p.photo) {
+        photoEl.innerHTML = `<img src="${p.photo}" alt="${p.name}">`;
+    } else {
+        photoEl.innerHTML = `<div class="photo-placeholder"><i class="fas fa-user"></i><p>Profile Photo</p></div>`;
+    }
+
+    // About
+    const aboutEl = document.getElementById('about-content');
+    d.about.forEach(text => {
+        const pp = document.createElement('p');
+        pp.innerHTML = text;
+        aboutEl.appendChild(pp);
+    });
+
+    // Research
+    const resGrid = document.getElementById('research-grid');
+    d.research.forEach(r => {
+        resGrid.innerHTML += `
+            <div class="research-card">
+                <div class="research-icon"><i class="${r.icon}"></i></div>
+                <h3>${r.title}</h3>
+                <p>${r.desc}</p>
+            </div>`;
+    });
+
+    // Publications - group by year
+    const pubEl = document.getElementById('publications-content');
+    const years = [...new Set(d.publications.map(p => p.year))].sort((a,b) => b-a);
+    years.forEach(year => {
+        const pubs = d.publications.filter(p => p.year === year);
+        let html = `<div class="pub-year-group"><h3 class="pub-year">${year}</h3><ol class="pub-list">`;
+        pubs.forEach(pub => {
+            const vol = pub.volume ? `, ${pub.volume}` : '';
+            const note = pub.note ? `<span class="pub-note">(${pub.note})</span>` : '';
+            html += `
+                <li class="pub-item">
+                    <span class="pub-title">"${pub.title}"</span>
+                    <span class="pub-authors">${pub.authors}</span>
+                    <span class="pub-journal"><em>${pub.journal}</em>${vol}, ${pub.year}</span>
+                    ${note}
+                </li>`;
+        });
+        html += '</ol></div>';
+        pubEl.innerHTML += html;
+    });
+
+    // Education
+    const eduEl = document.getElementById('education-content');
+    d.education.forEach(e => {
+        const badge = e.badge ? `<span class="timeline-badge">${e.badge}</span>` : '';
+        const desc = e.desc ? `<p class="timeline-desc">${e.desc.replace(/\n/g,'<br>')}</p>` : '';
+        eduEl.innerHTML += `
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>${e.degree} ${badge}</h3>
+                    <p class="timeline-place">${e.school}</p>
+                    <p class="timeline-date">${e.period}</p>
+                    ${desc}
+                </div>
+            </div>`;
+    });
+
+    // Footer
+    const footerEl = document.getElementById('footer-content');
+    footerEl.innerHTML = `
+        <p>&copy; ${new Date().getFullYear()} ${p.name}. All rights reserved.</p>
+        <p class="footer-address">${d.footer.address.replace(/\n/g,'<br>')}</p>`;
+
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navMenu = document.querySelector('.nav-menu');
+    navToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+        navToggle.classList.toggle('active');
+    });
+    document.querySelectorAll('.nav-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            navToggle.classList.remove('active');
+        });
+    });
+
+    // Navbar scroll
+    window.addEventListener('scroll', () => {
+        document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const t = document.querySelector(this.getAttribute('href'));
+            if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

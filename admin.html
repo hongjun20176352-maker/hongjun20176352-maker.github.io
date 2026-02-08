@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Site Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a365d;
+            --accent: #3182ce;
+            --accent-hover: #2b6cb0;
+            --bg: #f7fafc;
+            --card: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --success: #38a169;
+            --danger: #e53e3e;
+            --warning: #dd6b20;
+            --radius: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter','Noto Sans KR',sans-serif; background: var(--bg); color: var(--text); }
+
+        /* Top bar */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--primary); color: #fff;
+            padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .topbar h1 { font-size: 1rem; font-weight: 600; }
+        .topbar-actions { display: flex; gap: 8px; }
+        .topbar-actions button {
+            padding: 8px 16px; border: none; border-radius: var(--radius);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-preview { background: rgba(255,255,255,0.2); color: #fff; }
+        .btn-preview:hover { background: rgba(255,255,255,0.3); }
+        .btn-save { background: var(--success); color: #fff; }
+        .btn-save:hover { background: #2f855a; }
+        .btn-export { background: var(--warning); color: #fff; }
+        .btn-export:hover { background: #c05621; }
+        .btn-reset { background: var(--danger); color: #fff; }
+        .btn-reset:hover { background: #c53030; }
+
+        /* Layout */
+        .admin-container { max-width: 900px; margin: 0 auto; padding: 24px; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 2px solid var(--border); }
+        .tab {
+            padding: 10px 20px; background: none; border: none;
+            font-size: 0.9rem; font-weight: 500; color: var(--text-light);
+            cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab:hover { color: var(--accent); }
+
+        /* Panels */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Card */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+        }
+        .card h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 16px; }
+
+        /* Form */
+        .field { margin-bottom: 14px; }
+        .field label {
+            display: block; font-size: 0.8rem; font-weight: 600;
+            color: var(--text-light); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .field input, .field textarea, .field select {
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+            border-radius: var(--radius); font-size: 0.9rem; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .field input:focus, .field textarea:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(49,130,206,0.1);
+        }
+        .field textarea { resize: vertical; min-height: 80px; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .field-hint { font-size: 0.75rem; color: var(--text-light); margin-top: 2px; }
+
+        /* Pub item in admin */
+        .pub-edit-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+            position: relative;
+        }
+        .pub-edit-item .pub-num {
+            position: absolute; top: -8px; left: 12px;
+            background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700;
+            padding: 2px 8px; border-radius: 10px;
+        }
+        .pub-edit-item .delete-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 1rem; padding: 4px;
+        }
+        .pub-edit-item .delete-btn:hover { color: #c53030; }
+
+        /* Research item in admin */
+        .research-edit-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+            position: relative;
+        }
+        .research-edit-item .delete-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 1rem; padding: 4px;
+        }
+
+        /* Education item */
+        .edu-edit-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+            position: relative;
+        }
+        .edu-edit-item .delete-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 1rem; padding: 4px;
+        }
+
+        /* Add button */
+        .add-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius); font-size: 0.85rem;
+            font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+        .add-btn:hover { background: var(--accent-hover); }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--success); color: #fff;
+            padding: 12px 24px; border-radius: var(--radius);
+            font-size: 0.9rem; font-weight: 500;
+            opacity: 0; transform: translateY(20px);
+            transition: all 0.3s; z-index: 999; pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Link items */
+        .link-edit-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px; margin-bottom: 8px;
+            display: grid; grid-template-columns: 150px 150px 1fr 32px; gap: 8px; align-items: center;
+        }
+        .link-edit-item input { font-size: 0.85rem; padding: 6px 8px; }
+        .link-edit-item .delete-btn {
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <h1>Site Editor</h1>
+    <div class="topbar-actions">
+        <button class="btn-preview" onclick="preview()">Preview</button>
+        <button class="btn-save" onclick="save()">Save</button>
+        <button class="btn-export" onclick="exportFile()">Export data.js</button>
+        <button class="btn-reset" onclick="resetData()">Reset</button>
+    </div>
+</div>
+
+<div class="admin-container">
+    <div class="tabs">
+        <button class="tab active" data-tab="profile">Profile</button>
+        <button class="tab" data-tab="about">About</button>
+        <button class="tab" data-tab="research">Research</button>
+        <button class="tab" data-tab="pubs">Publications</button>
+        <button class="tab" data-tab="edu">Education</button>
+    </div>
+
+    <!-- Profile Panel -->
+    <div class="panel active" id="panel-profile">
+        <div class="card">
+            <h3>Basic Information</h3>
+            <div class="field-row">
+                <div class="field">
+                    <label>Name (English)</label>
+                    <input type="text" id="p-name">
+                </div>
+                <div class="field">
+                    <label>Name (Korean)</label>
+                    <input type="text" id="p-nameKo">
+                </div>
+            </div>
+            <div class="field">
+                <label>Title / Position</label>
+                <input type="text" id="p-title">
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label>Department</label>
+                    <input type="text" id="p-department">
+                </div>
+                <div class="field">
+                    <label>University</label>
+                    <input type="text" id="p-university">
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label>Lab Name</label>
+                    <input type="text" id="p-labName">
+                </div>
+                <div class="field">
+                    <label>Lab URL</label>
+                    <input type="text" id="p-labUrl">
+                </div>
+            </div>
+            <div class="field">
+                <label>Profile Photo (filename, e.g. profile.jpg)</label>
+                <input type="text" id="p-photo" placeholder="Leave empty if no photo yet">
+            </div>
+        </div>
+        <div class="card">
+            <h3>Links</h3>
+            <div id="links-list"></div>
+            <button class="add-btn" onclick="addLink()">+ Add Link</button>
+        </div>
+        <div class="card">
+            <h3>Footer Address</h3>
+            <div class="field">
+                <textarea id="p-footer" rows="2"></textarea>
+                <div class="field-hint">Use line breaks for multi-line address</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Panel -->
+    <div class="panel" id="panel-about">
+        <div class="card">
+            <h3>About Me</h3>
+            <div class="field-hint" style="margin-bottom:12px;">
+                Each text area = one paragraph. HTML tags allowed: &lt;strong&gt;, &lt;a href="..."&gt;, &lt;em&gt;
+            </div>
+            <div id="about-list"></div>
+            <button class="add-btn" onclick="addAbout()">+ Add Paragraph</button>
+        </div>
+    </div>
+
+    <!-- Research Panel -->
+    <div class="panel" id="panel-research">
+        <div class="card">
+            <h3>Research Interests</h3>
+            <div id="research-list"></div>
+            <button class="add-btn" onclick="addResearch()">+ Add Research Area</button>
+        </div>
+    </div>
+
+    <!-- Publications Panel -->
+    <div class="panel" id="panel-pubs">
+        <div class="card">
+            <h3>Publications <span style="font-weight:400;color:var(--text-light);font-size:0.85rem;" id="pub-count"></span></h3>
+            <div class="field-hint" style="margin-bottom:12px;">
+                Authors: Use &lt;strong&gt;H. Chang&lt;/strong&gt; to highlight your name. Use * for corresponding, and † for co-first.
+            </div>
+            <div id="pubs-list"></div>
+            <button class="add-btn" onclick="addPub()">+ Add Publication</button>
+        </div>
+    </div>
+
+    <!-- Education Panel -->
+    <div class="panel" id="panel-edu">
+        <div class="card">
+            <h3>Education</h3>
+            <div id="edu-list"></div>
+            <button class="add-btn" onclick="addEdu()">+ Add Education</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+// Load data
+let data;
+try {
+    const saved = localStorage.getItem('siteData');
+    data = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(siteData));
+} catch(e) {
+    data = JSON.parse(JSON.stringify(siteData));
+}
+
+// ===== Tabs =====
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+});
+
+// ===== Toast =====
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ===== Profile =====
+function loadProfile() {
+    const p = data.profile;
+    document.getElementById('p-name').value = p.name;
+    document.getElementById('p-nameKo').value = p.nameKo;
+    document.getElementById('p-title').value = p.title;
+    document.getElementById('p-department').value = p.department;
+    document.getElementById('p-university').value = p.university;
+    document.getElementById('p-labName').value = p.labName;
+    document.getElementById('p-labUrl').value = p.labUrl;
+    document.getElementById('p-photo').value = p.photo || '';
+    document.getElementById('p-footer').value = data.footer.address;
+    renderLinks();
+}
+
+function collectProfile() {
+    const p = data.profile;
+    p.name = document.getElementById('p-name').value;
+    p.nameKo = document.getElementById('p-nameKo').value;
+    p.title = document.getElementById('p-title').value;
+    p.department = document.getElementById('p-department').value;
+    p.university = document.getElementById('p-university').value;
+    p.labName = document.getElementById('p-labName').value;
+    p.labUrl = document.getElementById('p-labUrl').value;
+    p.photo = document.getElementById('p-photo').value;
+    data.footer.address = document.getElementById('p-footer').value;
+    collectLinks();
+}
+
+// ===== Links =====
+function renderLinks() {
+    const el = document.getElementById('links-list');
+    el.innerHTML = '';
+    data.profile.links.forEach((l, i) => {
+        el.innerHTML += `
+            <div class="link-edit-item">
+                <input type="text" value="${l.icon}" data-link="${i}" data-field="icon" placeholder="fas fa-icon">
+                <input type="text" value="${l.label}" data-link="${i}" data-field="label" placeholder="Label">
+                <input type="text" value="${l.url}" data-link="${i}" data-field="url" placeholder="URL">
+                <button class="delete-btn" onclick="deleteLink(${i})">x</button>
+            </div>`;
+    });
+}
+
+function collectLinks() {
+    data.profile.links = [];
+    document.querySelectorAll('.link-edit-item').forEach(el => {
+        const inputs = el.querySelectorAll('input');
+        data.profile.links.push({
+            icon: inputs[0].value,
+            label: inputs[1].value,
+            url: inputs[2].value
+        });
+    });
+}
+
+function addLink() {
+    collectAll();
+    data.profile.links.push({ icon: 'fas fa-link', label: 'New Link', url: '' });
+    renderLinks();
+}
+
+function deleteLink(i) {
+    collectAll();
+    data.profile.links.splice(i, 1);
+    renderLinks();
+}
+
+// ===== About =====
+function renderAbout() {
+    const el = document.getElementById('about-list');
+    el.innerHTML = '';
+    data.about.forEach((text, i) => {
+        el.innerHTML += `
+            <div class="field" style="position:relative;">
+                <label>Paragraph ${i+1}
+                    <button class="delete-btn" style="position:absolute;right:0;top:0;" onclick="deleteAbout(${i})">x</button>
+                </label>
+                <textarea data-about="${i}" rows="3">${text}</textarea>
+            </div>`;
+    });
+}
+
+function collectAbout() {
+    data.about = [];
+    document.querySelectorAll('[data-about]').forEach(el => {
+        data.about.push(el.value);
+    });
+}
+
+function addAbout() { collectAll(); data.about.push(''); renderAbout(); }
+function deleteAbout(i) { collectAll(); data.about.splice(i,1); renderAbout(); }
+
+// ===== Research =====
+function renderResearch() {
+    const el = document.getElementById('research-list');
+    el.innerHTML = '';
+    data.research.forEach((r, i) => {
+        el.innerHTML += `
+            <div class="research-edit-item">
+                <button class="delete-btn" onclick="deleteResearch(${i})">x</button>
+                <div class="field-row">
+                    <div class="field">
+                        <label>Icon (FontAwesome class)</label>
+                        <input type="text" value="${r.icon}" data-res="${i}" data-field="icon">
+                    </div>
+                    <div class="field">
+                        <label>Title</label>
+                        <input type="text" value="${r.title}" data-res="${i}" data-field="title">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Description</label>
+                    <textarea data-res="${i}" data-field="desc" rows="2">${r.desc}</textarea>
+                </div>
+            </div>`;
+    });
+}
+
+function collectResearch() {
+    const items = document.querySelectorAll('.research-edit-item');
+    data.research = [];
+    items.forEach(item => {
+        data.research.push({
+            icon: item.querySelector('[data-field="icon"]').value,
+            title: item.querySelector('[data-field="title"]').value,
+            desc: item.querySelector('[data-field="desc"]').value
+        });
+    });
+}
+
+function addResearch() {
+    collectAll();
+    data.research.push({ icon:'fas fa-star', title:'New Topic', desc:'' });
+    renderResearch();
+}
+function deleteResearch(i) { collectAll(); data.research.splice(i,1); renderResearch(); }
+
+// ===== Publications =====
+function renderPubs() {
+    const el = document.getElementById('pubs-list');
+    el.innerHTML = '';
+    document.getElementById('pub-count').textContent = `(${data.publications.length} papers)`;
+    data.publications.forEach((pub, i) => {
+        el.innerHTML += `
+            <div class="pub-edit-item">
+                <span class="pub-num">#${i+1}</span>
+                <button class="delete-btn" onclick="deletePub(${i})">x</button>
+                <div class="field-row" style="margin-top:8px;">
+                    <div class="field">
+                        <label>Year</label>
+                        <input type="number" value="${pub.year}" data-pub="${i}" data-field="year">
+                    </div>
+                    <div class="field">
+                        <label>Journal</label>
+                        <input type="text" value="${pub.journal}" data-pub="${i}" data-field="journal">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Title</label>
+                    <input type="text" value="${escapeAttr(pub.title)}" data-pub="${i}" data-field="title">
+                </div>
+                <div class="field">
+                    <label>Authors</label>
+                    <input type="text" value="${escapeAttr(pub.authors)}" data-pub="${i}" data-field="authors">
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label>Volume / Pages</label>
+                        <input type="text" value="${pub.volume || ''}" data-pub="${i}" data-field="volume">
+                    </div>
+                    <div class="field">
+                        <label>Note (e.g. Co-first author)</label>
+                        <input type="text" value="${pub.note || ''}" data-pub="${i}" data-field="note">
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+function collectPubs() {
+    const items = document.querySelectorAll('.pub-edit-item');
+    data.publications = [];
+    items.forEach(item => {
+        data.publications.push({
+            year: parseInt(item.querySelector('[data-field="year"]').value),
+            title: item.querySelector('[data-field="title"]').value,
+            authors: item.querySelector('[data-field="authors"]').value,
+            journal: item.querySelector('[data-field="journal"]').value,
+            volume: item.querySelector('[data-field="volume"]').value,
+            note: item.querySelector('[data-field="note"]').value
+        });
+    });
+}
+
+function addPub() {
+    collectAll();
+    data.publications.unshift({
+        year: new Date().getFullYear(), title:'', authors:'', journal:'', volume:'', note:''
+    });
+    renderPubs();
+    showToast('New publication added at top');
+}
+function deletePub(i) {
+    if (confirm('Delete this publication?')) {
+        collectAll(); data.publications.splice(i,1); renderPubs();
+    }
+}
+
+// ===== Education =====
+function renderEdu() {
+    const el = document.getElementById('edu-list');
+    el.innerHTML = '';
+    data.education.forEach((e, i) => {
+        el.innerHTML += `
+            <div class="edu-edit-item">
+                <button class="delete-btn" onclick="deleteEdu(${i})">x</button>
+                <div class="field-row">
+                    <div class="field">
+                        <label>Degree</label>
+                        <input type="text" value="${e.degree}" data-edu="${i}" data-field="degree">
+                    </div>
+                    <div class="field">
+                        <label>Badge (optional, e.g. ABD)</label>
+                        <input type="text" value="${e.badge || ''}" data-edu="${i}" data-field="badge">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label>School</label>
+                        <input type="text" value="${e.school}" data-edu="${i}" data-field="school">
+                    </div>
+                    <div class="field">
+                        <label>Period</label>
+                        <input type="text" value="${e.period}" data-edu="${i}" data-field="period">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Description</label>
+                    <textarea data-edu="${i}" data-field="desc" rows="2">${e.desc || ''}</textarea>
+                </div>
+            </div>`;
+    });
+}
+
+function collectEdu() {
+    const items = document.querySelectorAll('.edu-edit-item');
+    data.education = [];
+    items.forEach(item => {
+        data.education.push({
+            degree: item.querySelector('[data-field="degree"]').value,
+            badge: item.querySelector('[data-field="badge"]').value,
+            school: item.querySelector('[data-field="school"]').value,
+            period: item.querySelector('[data-field="period"]').value,
+            desc: item.querySelector('[data-field="desc"]').value
+        });
+    });
+}
+
+function addEdu() {
+    collectAll();
+    data.education.push({ degree:'', badge:'', school:'', period:'', desc:'' });
+    renderEdu();
+}
+function deleteEdu(i) { collectAll(); data.education.splice(i,1); renderEdu(); }
+
+// ===== Helpers =====
+function escapeAttr(s) {
+    return s.replace(/"/g, '&quot;');
+}
+
+function collectAll() {
+    collectProfile();
+    collectAbout();
+    collectResearch();
+    collectPubs();
+    collectEdu();
+}
+
+// ===== Actions =====
+function save() {
+    collectAll();
+    localStorage.setItem('siteData', JSON.stringify(data));
+    showToast('Saved! Open index.html to preview.');
+}
+
+function preview() {
+    save();
+    window.open('index.html', '_blank');
+}
+
+function exportFile() {
+    collectAll();
+    const content = 'const siteData = ' + JSON.stringify(data, null, 2) + ';\n';
+    const blob = new Blob([content], { type: 'application/javascript' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'data.js';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('data.js downloaded! Replace the old file.');
+}
+
+function resetData() {
+    if (confirm('Reset all changes and restore from original data.js?')) {
+        localStorage.removeItem('siteData');
+        data = JSON.parse(JSON.stringify(siteData));
+        loadAll();
+        showToast('Reset to original data.');
+    }
+}
+
+// ===== Init =====
+function loadAll() {
+    loadProfile();
+    renderAbout();
+    renderResearch();
+    renderPubs();
+    renderEdu();
+}
+loadAll();
+</script>
+</body>
+</html>
